@@ -1,0 +1,17 @@
+[
+    {
+        "id":1,
+        "nom":"Billy",
+        "email":"billy@wanadoo.fr"
+    },
+    {
+        "id":2,
+        "nom":"Jean",
+        "email":"jean@wanadoo.fr"
+    },
+    {
+        "id":3,
+        "nom":"Charles",
+        "email":"Charles@wanadoo.fr"
+    }
+]

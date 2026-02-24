@@ -1,0 +1,14 @@
+[
+    {
+        "id" : 1,
+        "ville" : "Paris"
+    },
+    {
+        "id":2,
+        "ville" : "Londres"
+    },
+    {
+        "id" : 3,
+        "ville" : "Brasilia"
+    }
+]
