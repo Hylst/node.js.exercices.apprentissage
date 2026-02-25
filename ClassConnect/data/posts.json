@@ -1,0 +1,14 @@
+[
+    {
+        "id": 1,
+        "userId": 1,
+        "content": "Bonjour tout le monde !",
+        "createdAt": "2026-02-24T10:15:00.000Z"
+    },
+    {
+        "id": 2,
+        "userId": 2,
+        "content": "Salut Alice, bienvenue sur ClassConnect !",
+        "createdAt": "2026-02-24T10:20:00.000Z"
+    }
+]

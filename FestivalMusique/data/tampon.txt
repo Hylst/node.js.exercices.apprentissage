@@ -1,0 +1,29 @@
+[
+  {
+    "id": 1,
+    "artiste": "The Electric Waves",
+    "genre": "Electro",
+    "ville": "Paris",
+    "date": "2026-08-05",
+    "scene": "Main Stage",
+    "prix": 45
+  },
+  {
+    "id": 2,
+    "artiste": "Sunset Groove",
+    "genre": "Jazz",
+    "ville": "Lyon",
+    "date": "2026-07-12",
+    "scene": "Jazz Corner",
+    "prix": 30
+  },
+  {
+    "id": 3,
+    "artiste": "Tartempion",
+    "genre": "Rock",
+    "ville": "Strasbourg",
+    "date": "2026-09-20",
+    "scene": "Nerd Stage",
+    "prix": 500000
+  }
+]

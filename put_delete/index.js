@@ -14,6 +14,8 @@ app.listen(PORT, ()=>{
     console.log(`Serveur démarré sur http://localhost:${PORT}`);
 })
 
+app.use(express.json());
+
 async function readUsers() {
     const data = await fs.readFile(usersPath, "utf-8");
     const users = JSON.parse(data);
@@ -45,5 +47,36 @@ app.delete('/users/:id', async(req,res)=>{
 
     res.json({
         message:`L'utilisateur avec l'ID ${id} a bien été supprimé.`
+    });
+})
+
+app.put('/users/:id', async (req,res)=> {
+    const id = parseInt(req.params.id);
+    if(isNaN(id)){
+        return res.json({message:"L'ID doit être un chiffre."});
+    }
+
+    const users = await readUsers()
+    const { nom, email } = req.body;
+
+    if (!nom && !email) {
+            res.json({
+        message:"Email ou nom nécessaire"
+    });
+    }
+
+    const indexUserToModify = users.findIndex(user=>user.id===id);
+    if (indexUserToModify == -1) {
+            res.json({
+        message:`Utilisateur introuvable`
+    });
+    }
+    users[indexUserToModify] = { id, nom, email };
+
+    const usersJSON = JSON.stringify(users,null,2);
+    await fs.writeFile(usersPath,usersJSON);
+
+    res.json({
+        message:`L'utilisateur avec l'ID ${id} a bien été modifié.`
     });
 })
