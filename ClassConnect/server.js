@@ -7,7 +7,9 @@ import { fileURLToPath } from "url"
 // Import pour manipuler les chemins de fichiers
 import path from "path"
 // Import des middlewares
-import { validateId, validateData, handleResult, errorHandler } from "./middlewares.js"
+import { validateId, validateData, handleResult, errorHandler, asyncHandler } from "./middlewares.js"
+// Import des erreurs et messages
+import { ERROR_MESSAGES, ValidationError, NotFoundError } from "./errors.js"
 
 // Crée l'application Express
 const app = express();
@@ -53,17 +55,17 @@ async function addData(filePath, newData) {
 
 async function modData(filePath, newData, id) {
     if(isNaN(id)) {
-        return {message:"L'ID doit être un chiffre."};
+        throw new ValidationError(ERROR_MESSAGES.INVALID_ID);
     }
-    if(!newData) {
-        return {message:"Aucune donnée fournie."};
+    if(!newData || Object.keys(newData).length === 0) {
+        throw new ValidationError(ERROR_MESSAGES.NO_DATA_PROVIDED);
     }
 
     const dataObject = await readData(filePath);
     const indexToModify = dataObject.findIndex(item => item.id === parseInt(id));
     
     if(indexToModify === -1) {
-        return {message:"Élément introuvable."};
+        throw new NotFoundError(ERROR_MESSAGES.RESOURCE_NOT_FOUND);
     }
 
     dataObject[indexToModify] = { id: parseInt(id), ...newData };
@@ -76,14 +78,14 @@ async function modData(filePath, newData, id) {
 
 async function delData(filePath, id) {
     if(isNaN(id)) {
-        return {message:"L'ID doit être un chiffre."};
+        throw new ValidationError(ERROR_MESSAGES.INVALID_ID);
     }
 
     const dataObject = await readData(filePath);
     const newData = dataObject.filter(data => data.id !== parseInt(id));
 
     if(newData.length === dataObject.length) {
-        return {message:"Élément introuvable."};
+        throw new NotFoundError(ERROR_MESSAGES.RESOURCE_NOT_FOUND);
     }
 
     // Sauve dans fichier
@@ -97,162 +99,102 @@ async function delData(filePath, id) {
 // ==================== ROUTES USERS ====================
 
 // GET /users - Récup all users
-app.get("/users", async (req,res) => {
-    try {
-        const users = await readData(usersPath);
-        res.json({
-            message: "Voici la liste des utilisateurs",
-            users: users
-        });
-    } catch (error) {
-        res.status(500).json({ message: "Erreur lors de la lecture des utilisateurs" });
-    }
-});
+app.get("/users", asyncHandler(async (req,res) => {
+    const users = await readData(usersPath);
+    res.json({
+        message: "Voici la liste des utilisateurs",
+        users: users
+    });
+}));
 
 // POST /users - Add new user
-app.post("/users", validateData, async (req,res) => {
-    try {
-        const result = await addData(usersPath, req.body);
-        res.status(201).json({
-            message: "Utilisateur ajouté avec succès",
-            user: req.body
-        });
-    } catch (error) {
-        res.status(500).json({ message: "Erreur lors de l'ajout de l'utilisateur" });
-    }
-});
+app.post("/users", validateData, asyncHandler(async (req,res) => {
+    const result = await addData(usersPath, req.body);
+    res.status(201).json({
+        message: "Utilisateur ajouté avec succès",
+        user: req.body
+    });
+}));
 
 // GET /users/:id - Récup 1 user par ID
-app.get("/users/:id", validateId, async (req,res) => {
-    try {
-        const users = await readData(usersPath);
-        const user = users.find(u => u.id === req.id);
+app.get("/users/:id", validateId, asyncHandler(async (req,res) => {
+    const users = await readData(usersPath);
+    const user = users.find(u => u.id === req.id);
 
-        if(!user) {
-            return res.status(404).json({ message: "Utilisateur introuvable" });
-        }
-
-        res.json({
-            message: "Utilisateur trouvé",
-            user: user
-        });
-    } catch (error) {
-        res.status(500).json({ message: "Erreur lors de la lecture de l'utilisateur" });
+    if(!user) {
+        throw new NotFoundError(ERROR_MESSAGES.USER_NOT_FOUND);
     }
-});
+
+    res.json({
+        message: "Utilisateur trouvé",
+        user: user
+    });
+}));
 
 // PUT /users/:id - Modif un user
-app.put("/users/:id", validateId, validateData, async (req,res) => {
-    try {
-        const result = await modData(usersPath, req.body, req.id);
-        
-        if (handleResult(req, res, result)) {
-            return;
-        }
-
-        res.json({
-            message: `L'utilisateur avec l'ID ${req.id} a bien été modifié`,
-            user: result
-        });
-    } catch (error) {
-        res.status(500).json({ message: "Erreur lors de la modification de l'utilisateur" });
-    }
-});
+app.put("/users/:id", validateId, validateData, asyncHandler(async (req,res) => {
+    const result = await modData(usersPath, req.body, req.id);
+    res.json({
+        message: `L'utilisateur avec l'ID ${req.id} a bien été modifié`,
+        user: result
+    });
+}));
 
 // DELETE /users/:id - Supp un user
-app.delete("/users/:id", validateId, async (req,res) => {
-    try {
-        const result = await delData(usersPath, req.id);
-        
-        if (handleResult(req, res, result)) {
-            return;
-        }
-
-        res.json(result);
-    } catch (error) {
-        res.status(500).json({ message: "Erreur lors de la suppression de l'utilisateur" });
-    }
-});
+app.delete("/users/:id", validateId, asyncHandler(async (req,res) => {
+    const result = await delData(usersPath, req.id);
+    res.json(result);
+}));
 
 // ==================== ROUTES POSTS ====================
 
 // GET /posts - Récup tous les posts
-app.get("/posts", async (req,res) => {
-    try {
-        const posts = await readData(postsPath);
-        res.json({
-            message: "Voici la liste des posts",
-            posts: posts
-        });
-    } catch (error) {
-        res.status(500).json({ message: "Erreur lors de la lecture des posts" });
-    }
-});
+app.get("/posts", asyncHandler(async (req,res) => {
+    const posts = await readData(postsPath);
+    res.json({
+        message: "Voici la liste des posts",
+        posts: posts
+    });
+}));
 
 // POST /posts - Add new post
-app.post("/posts", validateData, async (req,res) => {
-    try {
-        const result = await addData(postsPath, req.body);
-        res.status(201).json({
-            message: "Post ajouté avec succès",
-            post: req.body
-        });
-    } catch (error) {
-        res.status(500).json({ message: "Erreur lors de l'ajout du post" });
-    }
-});
+app.post("/posts", validateData, asyncHandler(async (req,res) => {
+    const result = await addData(postsPath, req.body);
+    res.status(201).json({
+        message: "Post ajouté avec succès",
+        post: req.body
+    });
+}));
 
 // GET /posts/:id - Récup post par ID
-app.get("/posts/:id", validateId, async (req,res) => {
-    try {
-        const posts = await readData(postsPath);
-        const post = posts.find(p => p.id === req.id);
+app.get("/posts/:id", validateId, asyncHandler(async (req,res) => {
+    const posts = await readData(postsPath);
+    const post = posts.find(p => p.id === req.id);
 
-        if(!post) {
-            return res.status(404).json({ message: "Post introuvable" });
-        }
-
-        res.json({
-            message: "Post trouvé",
-            post: post
-        });
-    } catch (error) {
-        res.status(500).json({ message: "Erreur lors de la lecture du post" });
+    if(!post) {
+        throw new NotFoundError(ERROR_MESSAGES.POST_NOT_FOUND);
     }
-});
+
+    res.json({
+        message: "Post trouvé",
+        post: post
+    });
+}));
 
 // PUT /posts/:id - Modif un post
-app.put("/posts/:id", validateId, validateData, async (req,res) => {
-    try {
-        const result = await modData(postsPath, req.body, req.id);
-        
-        if (handleResult(req, res, result)) {
-            return;
-        }
-
-        res.json({
-            message: `Le post avec l'ID ${req.id} a bien été modifié`,
-            post: result
-        });
-    } catch (error) {
-        res.status(500).json({ message: "Erreur lors de la modification du post" });
-    }
-});
+app.put("/posts/:id", validateId, validateData, asyncHandler(async (req,res) => {
+    const result = await modData(postsPath, req.body, req.id);
+    res.json({
+        message: `Le post avec l'ID ${req.id} a bien été modifié`,
+        post: result
+    });
+}));
 
 // DELETE /posts/:id - Supp un post
-app.delete("/posts/:id", validateId, async (req,res) => {
-    try {
-        const result = await delData(postsPath, req.id);
-        
-        if (handleResult(req, res, result)) {
-            return;
-        }
-
-        res.json(result);
-    } catch (error) {
-        res.status(500).json({ message: "Erreur lors de la suppression du post" });
-    }
-})
+app.delete("/posts/:id", validateId, asyncHandler(async (req,res) => {
+    const result = await delData(postsPath, req.id);
+    res.json(result);
+}))
 
 // Middleware de gestion d'erreurs centralisé (doit être en dernier)
 app.use(errorHandler);
