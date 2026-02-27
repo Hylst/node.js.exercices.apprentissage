@@ -1,5 +1,5 @@
 export function createError(statusCode, message) {
     const error = new Error(message);
-    error.statusCode=404;
+    error.statusCode = statusCode;
     throw error;
 }
