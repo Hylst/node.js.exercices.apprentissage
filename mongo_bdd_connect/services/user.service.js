@@ -1,5 +1,7 @@
+import { JWT_SECRET, JWT_EXPIRES_IN } from "../config/config.js";
 import { User } from "../models/user.model.js";
 import { createError } from "../utils/helpers.js";
+import jwt from "jsonwebtoken";
 
 export async function getAllUsers(){
     const users = await User.find();
@@ -43,4 +45,27 @@ export async function deleteUser(id){
     }
     
     return user;
+}
+
+export async function login(userInput) {
+    const {email, password} = userInput;
+    const foundUser = await User.findOne({email})
+
+    if(!foundUser){
+        throw createError(401, "Identifiants Invalides");
+    }
+    const isMatch = await foundUser.comparePassword(password);
+
+    if(!isMatch)        {
+        throw createError(401, "Identifiants Invalides");
+    }
+    
+const token = jwt.sign (
+    {id: foundUser.id},
+    JWT_SECRET,
+    {expiresIn: JWT_EXPIRES_IN}
+);
+
+
+    return {foundUser, token}
 }

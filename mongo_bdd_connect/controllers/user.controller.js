@@ -59,3 +59,22 @@ export async function deleteUser(req,res,next) {
         next(error);
     }
 }
+
+
+export async function login(req,res,next) {
+    try{
+        const userInput = req.body;
+        const {foundUser, token} = await userService.login(userInput);
+
+        const userWithoutPassword = foundUser.toObject();
+        delete userWithoutPassword.password;
+
+        res.status(200).json({
+            message:"Connexion réusie",
+            token,
+            user:userWithoutPassword
+        })
+    }catch(error){
+        next(error);
+    }
+}
