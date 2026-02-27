@@ -1,0 +1,34 @@
+[
+  {
+    "id": 1,
+    "title": "Galaxy Arena",
+    "studio": "StarForge",
+    "platform": "PC",
+    "releaseDate": "2026-09-10",
+    "price": 59.99
+  },
+  {
+    "id": 2,
+    "title": "Cyber Drift X",
+    "studio": "NeoMotion",
+    "platform": "PS5",
+    "releaseDate": "2026-11-21",
+    "price": 69.99
+  },
+  {
+    "id": 3,
+    "title": "Shadow Realms",
+    "studio": "DarkPixel",
+    "platform": "Xbox Series X",
+    "releaseDate": "2025-05-14",
+    "price": 49.99
+  },
+  {
+    "id": 4,
+    "title": "Hylst World",
+    "studio": "Hylst",
+    "platform": "ATARI ST",
+    "releaseDate": "2026-02-26",
+    "price": 9.99
+  }
+]
